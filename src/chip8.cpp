@@ -13,7 +13,20 @@ void Chip8::execute(uint16_t opcode) {
     uint16_t nnn = opcode & 0x0FFF;
 
     switch (hi_nibble) {
+        case 0x0:
+            if (opcode == 0x00EE) {
+                sp--;
+                pc = stack[sp];
+            }
+            break;
+
         case 0x1:
+            pc = nnn;
+            break;
+        
+        case 0x2:
+            stack[sp] = pc;
+            sp++;
             pc = nnn;
             break;
 

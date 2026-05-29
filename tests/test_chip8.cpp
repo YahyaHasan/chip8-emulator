@@ -77,3 +77,41 @@ TEST(Chip8Opcode, OP_8XY4_WithCarry) {
     EXPECT_EQ(cpu.get_register(0xA), 0x00);
     EXPECT_EQ(cpu.get_register(0xF), 1);       // carry set
 }
+
+// ---- 2NNN / 00EE: call and return ----
+
+TEST(Chip8Opcode, OP_2NNN_CallPushesReturnAddress) {
+    Chip8 cpu;
+    uint16_t pc_before = cpu.get_pc();       // 0x200
+    cpu.execute(0x2400);                     // call 0x400
+    EXPECT_EQ(cpu.get_pc(), 0x400);
+    EXPECT_EQ(cpu.get_sp(), 1);
+    // implicitly: stack[0] should hold pc_before
+    // we can't read stack directly without exposing it; the return test verifies it
+    (void)pc_before;
+}
+
+TEST(Chip8Opcode, OP_00EE_ReturnPopsStack) {
+    Chip8 cpu;
+    cpu.execute(0x2400);                     // call 0x400, pushes 0x200
+    cpu.execute(0x00EE);                     // return, pops 0x200
+    EXPECT_EQ(cpu.get_pc(), 0x200);
+    EXPECT_EQ(cpu.get_sp(), 0);
+}
+
+TEST(Chip8Opcode, NestedCallsAndReturns) {
+    Chip8 cpu;
+    cpu.execute(0x2400);                     // call 0x400 from 0x200
+    cpu.execute(0x2600);                     // call 0x600 from 0x400
+    EXPECT_EQ(cpu.get_pc(), 0x600);
+    EXPECT_EQ(cpu.get_sp(), 2);
+
+    cpu.execute(0x00EE);                     // return to 0x400
+    EXPECT_EQ(cpu.get_pc(), 0x400);
+    EXPECT_EQ(cpu.get_sp(), 1);
+
+    cpu.execute(0x00EE);                     // return to 0x200
+    EXPECT_EQ(cpu.get_pc(), 0x200);
+    EXPECT_EQ(cpu.get_sp(), 0);
+}
+
