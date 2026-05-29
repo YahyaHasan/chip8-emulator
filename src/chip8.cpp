@@ -14,37 +14,49 @@ void Chip8::execute(uint16_t opcode) {
 
     switch (hi_nibble) {
         case 0x0:
-            if (opcode == 0x00EE) {
+            if (opcode == 0x00EE) { // 00EE: return from subroutine
                 sp--;
                 pc = stack[sp];
             }
             break;
 
-        case 0x1:
+        case 0x1:                   // 1NNN: jump
             pc = nnn;
             break;
         
-        case 0x2:
+        case 0x2:                   // 2NNN: call subroutine at NNN
             stack[sp] = pc;
             sp++;
             pc = nnn;
             break;
 
-        case 0x3:
+        case 0x3:                   // 3XNN: skip next if Vx == NN
             if (V[x] == nn) {
                 pc += 2;
             }
             break;
+        
+        case 0x4:                   // 4XNN: skip if Vx != NN 
+            if (V[x] != nn) {
+                pc += 2;
+            }
+            break;
+        
+        case 0x5:                   // 5XY0: skip if Vx == Vy
+            if (V[x] == V[y]) {
+                pc +=2;
+            }
+            break;
 
-        case 0x6:
+        case 0x6:                   // 6XNN: Vx = NN
             V[x] = nn;
             break;
         
-        case 0x7:
+        case 0x7:                   // 7XNN: Vx += NN, no flag update
             V[x] += nn;
             break;
         
-        case 0x8:
+        case 0x8:                   // 8XYN: register-register ops, sub-dispatch on n
             switch(n) {
                 case 0x4: {
                     uint16_t sum = static_cast<uint16_t>(V[x]) + static_cast<uint16_t>(V[y]);
@@ -53,23 +65,23 @@ void Chip8::execute(uint16_t opcode) {
                     break;
                 }
                 
-                case 0x0:
+                case 0x0:                   // 8XY0: Vx = Vy
                     V[x] = V[y];
                     break;
                 
-                case 0x1:
+                case 0x1:                   // 8XY1: Vx = Vx | Vy
                     V[x] = V[x] | V[y];
                     break;
                 
-                case 0x2:
+                case 0x2:                   // 8XY2: Vx = Vx & Vy
                     V[x] = V[x] & V[y];
                     break;
 
-                case 0x3:
+                case 0x3:                   // 8XY3: Vx = Vx ^ Vy
                     V[x] = V[x] ^ V[y];
                     break;
 
-                case 0x5: {
+                case 0x5: {                 // 8XY5: Vx = Vx - Vy, VF = NOT borrow
                     uint8_t diff = V[x] - V[y];
                     bool no_borrow = V[x] >= V[y];
                     V[x] = diff;
@@ -77,6 +89,16 @@ void Chip8::execute(uint16_t opcode) {
                     break;
                 }
             }
+            break;
+        
+        case 0x9:                   // 9XY0: skip if Vx != Vy
+            if (V[x] != V[y]) {
+                pc += 2;
+            }
+            break;
+        
+        case 0xA:                   // ANNN: I = NNN
+            I = nnn;
             break;
     }
 }

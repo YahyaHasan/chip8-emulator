@@ -184,3 +184,76 @@ TEST(Chip8Opcode, OP_8XY5_EqualValues) {
     EXPECT_EQ(cpu.get_register(0xF), 1);  // V_A >= V_B holds when equal
 }
 
+// ---- 4XNN: skip if Vx != NN ----
+
+TEST(Chip8Opcode, OP_4XNN_SkipsWhenNotEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x4A99);                  // skip if V_A != 0x99 (true)
+    EXPECT_EQ(cpu.get_pc(), pc_before + 2);
+}
+
+TEST(Chip8Opcode, OP_4XNN_DoesNotSkipWhenEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x4A42);                  // skip if V_A != 0x42 (false)
+    EXPECT_EQ(cpu.get_pc(), pc_before);
+}
+
+// ---- 5XY0: skip if Vx == Vy ----
+
+TEST(Chip8Opcode, OP_5XY0_SkipsWhenEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    cpu.execute(0x6B42);                  // V_B = 0x42
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x5AB0);                  // skip if V_A == V_B (true)
+    EXPECT_EQ(cpu.get_pc(), pc_before + 2);
+}
+
+TEST(Chip8Opcode, OP_5XY0_DoesNotSkipWhenNotEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    cpu.execute(0x6B99);                  // V_B = 0x99
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x5AB0);                  // skip if V_A == V_B (false)
+    EXPECT_EQ(cpu.get_pc(), pc_before);
+}
+
+// ---- 9XY0: skip if Vx != Vy ----
+
+TEST(Chip8Opcode, OP_9XY0_SkipsWhenNotEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    cpu.execute(0x6B99);                  // V_B = 0x99
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x9AB0);                  // skip if V_A != V_B (true)
+    EXPECT_EQ(cpu.get_pc(), pc_before + 2);
+}
+
+TEST(Chip8Opcode, OP_9XY0_DoesNotSkipWhenEqual) {
+    Chip8 cpu;
+    cpu.execute(0x6A42);                  // V_A = 0x42
+    cpu.execute(0x6B42);                  // V_B = 0x42
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0x9AB0);                  // skip if V_A != V_B (false)
+    EXPECT_EQ(cpu.get_pc(), pc_before);
+}
+
+// ---- ANNN: set I = NNN ----
+
+TEST(Chip8Opcode, OP_ANNN_SetsIRegister) {
+    Chip8 cpu;
+    cpu.execute(0xA123);                  // I = 0x123
+    EXPECT_EQ(cpu.get_I(), 0x123);
+}
+
+TEST(Chip8Opcode, OP_ANNN_DoesNotAffectPC) {
+    Chip8 cpu;
+    uint16_t pc_before = cpu.get_pc();
+    cpu.execute(0xA123);
+    EXPECT_EQ(cpu.get_pc(), pc_before);   // ANNN must not touch PC
+}
+

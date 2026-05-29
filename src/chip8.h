@@ -13,6 +13,7 @@ public:
     uint8_t get_register(uint8_t index) const;
     uint16_t get_pc() const {return pc; }
     uint8_t get_sp() const {return sp; }
+    uint16_t get_I() const {return I; }
 
 private:
     uint16_t fetch();
