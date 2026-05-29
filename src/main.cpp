@@ -4,14 +4,18 @@
 int main() {
     Chip8 cpu;
 
-    // test a simple instruction: V0 = 0xAA
-    cpu.execute(0x60AA);
+    std::cout << "CHIP-8 Emulator Demo\n";
+    std::cout << "====================\n\n";
 
-    std::cout << "V0 = 0x"
-              << std::hex
-              << (int)cpu.get_register(0)
-              << std::dec
-              << "\n";
+    // Hand-execute: V0 = 10, V1 = 5, V0 = V0 + V1
+    cpu.execute(0x60FF);
+    cpu.execute(0x6105);
+    cpu.execute(0x8014);
+
+    std::cout << "After 255 + 5:\n";
+    std::cout << "  V0 = " << static_cast<int>(cpu.get_register(0)) << "\n";
+    std::cout << "  VF = " << static_cast<int>(cpu.get_register(0xF)) << "(carry)\n";
+
 
     return 0;
 }

@@ -58,7 +58,7 @@ void Chip8::execute(uint16_t opcode) {
         
         case 0x8:                   // 8XYN: register-register ops, sub-dispatch on n
             switch(n) {
-                case 0x4: {
+                case 0x4: {         // 8XY4: Vx = Vx + Vy, VF = carry
                     uint16_t sum = static_cast<uint16_t>(V[x]) + static_cast<uint16_t>(V[y]);
                     V[x] = static_cast<uint8_t>(sum & 0xFF);
                     V[0xF] = (sum > 0xFF) ? 1 : 0;
