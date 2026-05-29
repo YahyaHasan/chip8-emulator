@@ -46,11 +46,36 @@ void Chip8::execute(uint16_t opcode) {
         
         case 0x8:
             switch(n) {
-                case 0x4:
+                case 0x4: {
                     uint16_t sum = static_cast<uint16_t>(V[x]) + static_cast<uint16_t>(V[y]);
                     V[x] = static_cast<uint8_t>(sum & 0xFF);
                     V[0xF] = (sum > 0xFF) ? 1 : 0;
                     break;
+                }
+                
+                case 0x0:
+                    V[x] = V[y];
+                    break;
+                
+                case 0x1:
+                    V[x] = V[x] | V[y];
+                    break;
+                
+                case 0x2:
+                    V[x] = V[x] & V[y];
+                    break;
+
+                case 0x3:
+                    V[x] = V[x] ^ V[y];
+                    break;
+
+                case 0x5: {
+                    uint8_t diff = V[x] - V[y];
+                    bool no_borrow = V[x] >= V[y];
+                    V[x] = diff;
+                    V[0xF] = no_borrow ? 1 : 0;
+                    break;
+                }
             }
             break;
     }

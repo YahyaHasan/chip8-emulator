@@ -115,3 +115,72 @@ TEST(Chip8Opcode, NestedCallsAndReturns) {
     EXPECT_EQ(cpu.get_sp(), 0);
 }
 
+// ---- 8XY0: register copy ----
+
+TEST(Chip8Opcode, OP_8XY0_CopiesRegister) {
+    Chip8 cpu;
+    cpu.execute(0x6B42);                  // V_B = 0x42
+    cpu.execute(0x8AB0);                  // V_A = V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0x42);
+    EXPECT_EQ(cpu.get_register(0xB), 0x42);  // source unchanged
+}
+
+// ---- 8XY1: bitwise OR ----
+
+TEST(Chip8Opcode, OP_8XY1_BitwiseOr) {
+    Chip8 cpu;
+    cpu.execute(0x6A0F);                  // V_A = 0x0F
+    cpu.execute(0x6BF0);                  // V_B = 0xF0
+    cpu.execute(0x8AB1);                  // V_A = V_A | V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0xFF);
+}
+
+// ---- 8XY2: bitwise AND ----
+
+TEST(Chip8Opcode, OP_8XY2_BitwiseAnd) {
+    Chip8 cpu;
+    cpu.execute(0x6AFF);                  // V_A = 0xFF
+    cpu.execute(0x6B0F);                  // V_B = 0x0F
+    cpu.execute(0x8AB2);                  // V_A = V_A & V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0x0F);
+}
+
+// ---- 8XY3: bitwise XOR ----
+
+TEST(Chip8Opcode, OP_8XY3_BitwiseXor) {
+    Chip8 cpu;
+    cpu.execute(0x6AAA);                  // V_A = 0xAA
+    cpu.execute(0x6BFF);                  // V_B = 0xFF
+    cpu.execute(0x8AB3);                  // V_A = V_A ^ V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0x55);
+}
+
+// ---- 8XY5: subtraction with borrow flag ----
+
+TEST(Chip8Opcode, OP_8XY5_NoBorrow) {
+    Chip8 cpu;
+    cpu.execute(0x6A05);                  // V_A = 5
+    cpu.execute(0x6B03);                  // V_B = 3
+    cpu.execute(0x8AB5);                  // V_A = V_A - V_B
+    EXPECT_EQ(cpu.get_register(0xA), 2);
+    EXPECT_EQ(cpu.get_register(0xF), 1);  // VF = 1 means NO borrow
+}
+
+TEST(Chip8Opcode, OP_8XY5_WithBorrow) {
+    Chip8 cpu;
+    cpu.execute(0x6A03);                  // V_A = 3
+    cpu.execute(0x6B05);                  // V_B = 5
+    cpu.execute(0x8AB5);                  // V_A = V_A - V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0xFE);  // 3 - 5 wraps to 0xFE
+    EXPECT_EQ(cpu.get_register(0xF), 0);  // VF = 0 means borrow occurred
+}
+
+TEST(Chip8Opcode, OP_8XY5_EqualValues) {
+    Chip8 cpu;
+    cpu.execute(0x6A05);                  // V_A = 5
+    cpu.execute(0x6B05);                  // V_B = 5
+    cpu.execute(0x8AB5);                  // V_A = V_A - V_B
+    EXPECT_EQ(cpu.get_register(0xA), 0);
+    EXPECT_EQ(cpu.get_register(0xF), 1);  // V_A >= V_B holds when equal
+}
+
